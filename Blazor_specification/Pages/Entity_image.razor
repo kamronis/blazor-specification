@@ -1,0 +1,76 @@
+﻿@page "/ent/{entity_id}"
+@using Blazor_specification.Data
+
+<h3>@entity_type @entity_name</h3>
+
+<div id="entity-main">
+    <MatTable Items="@string_fields" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
+        <MatTableRow>
+            <td>@context.Item1</td>
+            <td>@context.Item2</td>
+        </MatTableRow>
+    </MatTable>
+    @foreach (var field in entity_fields)
+    {
+        <MatTable Items="@field.Item2" ShowPaging="false" class="mat-elevation-z5" style="width:auto;">
+            <MatTableHeader><th>@field.Item1</th></MatTableHeader>
+            <MatTableRow>
+                @{var link = "/ent/" + context; }
+                <td><NavLink href="@link">@DataService.GetEntityName(context)</NavLink></td>
+            </MatTableRow>
+        </MatTable>
+    }
+
+</div>
+
+@code {
+        [Parameter]
+        public string entity_id { get; set; }
+
+    private List<Tuple<string, string>> string_fields;
+    private List<Tuple<string, string[]>> entity_fields;
+    private Tuple<string, string[]>[] related_fields;
+    private string entity_type;
+    private string entity_name;
+
+
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        GetTable();
+    }
+
+    private void GetTable()
+    {
+        string_fields = new List<Tuple<string, string>>();
+        entity_fields = new List<Tuple<string, string[]>>();
+
+        entity_type = DataService.GetEntityType(entity_id);
+        entity_name = DataService.GetEntityName(entity_id);
+
+        related_fields = DataService.GetRelatedEntities(entity_type, entity_id);
+
+        var specification_fields = DataService.GetSpecificationFields(entity_type);
+
+        foreach (SpecificationField field in specification_fields)
+        {
+            var value = DataService.GetFieldValue(entity_id, field.name);
+            if (value != null)
+            {
+                var obj = value.Item2;
+                var type = obj.GetType();
+                if (type.Equals(typeof(string)))
+                {
+                    string_fields.Add(new Tuple<string, string>(field.name, (string)obj));
+                }
+                if (type.Equals(typeof(string[])))
+                {
+                    entity_fields.Add(new Tuple<string, string[]>(field.name, (string[])obj));
+                }
+            }
+
+        }
+
+    }
+}
