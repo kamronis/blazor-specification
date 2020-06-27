@@ -8,7 +8,7 @@ namespace Blazor_specification.Data
     public class Entity
     {
         public string id;
-        public Tuple<String, Object>[] fields;
+        public Pair[] pairs;
         public string entity_type;
     }
 }
