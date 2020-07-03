@@ -40,7 +40,15 @@
                 else
                 {
                     var new_id = ((Linked)context).link;
-                    <a href="/portrait/@new_id">@DataService.GetEntityName(new_id)</a>
+                    if (new_id == "cassetterootcollection")
+                    {
+                        <span>cassetterootcollection</span>
+                    }
+                    else
+                    {
+                        <a href="/portrait/@new_id">@DataService.GetEntityName(new_id)</a>
+                    }
+
                 }
 
             </td>
@@ -60,6 +68,7 @@
 
         protected override void OnParametersSet()
         {
+            //DataService.InitDB();
             pairs = DataService.GetPairs(entity_id);
             entity_type = DataService.GetEntityType(entity_id);
             entity_name = DataService.GetEntityName(entity_id);

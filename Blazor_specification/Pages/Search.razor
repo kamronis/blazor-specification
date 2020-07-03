@@ -1,0 +1,81 @@
+﻿@page "/search"
+@using Blazor_specification.Data
+
+<h3>Search</h3>
+<h4>Name:</h4>
+<MatStringField @bind-Value="@selected_name"></MatStringField>
+<h4>Type:</h4>
+<MatSelectItem @bind-Value="@selected_type" Items="@entity_types"></MatSelectItem>
+<MatButton @onclick="SearchByQuery">Search</MatButton>
+<div class="container-fluid">
+    <h3>Results:</h3>
+    <MatTable Items="@query_result" PageSize="10" class="mat-elevation-z5" style="width:auto;" UseSortHeaderRow="true">
+        
+       
+        <MatTableHeader>
+            <MatSortHeaderRow SortChanged="@SortData">
+                <MatSortHeader SortId="type">Type</MatSortHeader>
+                <MatSortHeader SortId="name">Name</MatSortHeader>
+            </MatSortHeaderRow>
+        </MatTableHeader>
+        
+        
+        <MatTableRow>
+            @{var link = "/portrait/" + context;
+                <td>@DataService.GetEntityType(context)</td>
+                <td><NavLink href="@link">@DataService.GetEntityName(context)</NavLink></td>
+                
+            }
+        </MatTableRow>
+    </MatTable>
+</div>
+
+@code {
+    private string selected_name = "";
+    private string[] entity_types;
+    private string selected_type = "All";
+    private string[] query_result;
+
+    void SearchByQuery()
+    {
+        query_result = DataService.SearchByNameAndType(selected_name, selected_type);
+
+
+    }
+    void ClearTable()
+    {
+        query_result = null;
+    }
+    void SortData(MatSortChangedEvent sort)
+    {
+        if (!(sort == null || sort.Direction == MatSortDirection.None || string.IsNullOrEmpty(sort.SortId)))
+        {
+            Comparison<String> comparison = null;
+            switch (sort.SortId)
+            {
+                case "name":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityType(s1), DataService.GetEntityType(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case "type":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityName(s1), DataService.GetEntityName(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+            }
+            if (comparison != null)
+            {
+                if (sort.Direction == MatSortDirection.Desc)
+                {
+                    Array.Sort(query_result, (s1, s2) => -1 * comparison(s1, s2));
+                }
+                else
+                {
+                    Array.Sort(query_result, comparison);
+                }
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        entity_types = DataService.GetEntityTypes();
+    }
+}

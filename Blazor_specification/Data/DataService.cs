@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Blazor_specification.Pages;
+using Microsoft.Extensions.Configuration.CommandLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Blazor_specification.Data
 {
@@ -43,6 +46,10 @@ namespace Blazor_specification.Data
                 }
             }
         };
+
+        public static XElement db = XElement.Load(@"C:\Users\Kamroni\Desktop\SypCassete\meta\SypCassete_current.fog");
+
+        public static Dictionary<string, XElement> dictionary;
 
         public static Table database = new Table()
         {
@@ -133,29 +140,71 @@ namespace Blazor_specification.Data
                     }
                 }
             };
+
+      
         public static Entity GetEntity(string id)
         {
-            return database.entities.Where(r => r.id == id).First();
+            if (id != "cassetterootcollection")
+            {
+                var el = db.Elements().FirstOrDefault(r => r.Attribute("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about").Value == id);
+                Entity entity = new Entity()
+                {
+                    id = id,
+                    entity_type = el.Name.ToString(),
+                    pairs = el.Elements().Select(f => new Field() { predicate = f.Name.ToString(), value = f.Value }).ToArray()
+                };
+                return entity;
+            }
+           
+            return null;
         }
+        /*public static Entity GetEntity(string id)
+        {
+            return database.entities.Where(r => r.id == id).First();
+        }*/
 
         public static Pair[] GetPairs(string id)
         {
-            return GetEntity(id).pairs;
+            return (id == "cassetterootcollection" ? null : GetEntity(id).pairs);
         }
         public static string GetEntityType(string id)
         {
-            return GetEntity(id).entity_type;
+            return (id == "cassetterootcollection" ? null : GetEntity(id).entity_type);
         }
 
         public static string GetEntityName(string id)
         {
-            return ((Field)GetPairs(id).Where(p => p.predicate == "name").First()).value;
+            return (id == "cassetterootcollection" ? null : ((Field)GetPairs(id).Where(p => p.predicate == "name").First()).value);
         }
-
         public static Linked[] GetReferencePairs(string id)
         {
-            return database.entities.SelectMany(r => r.pairs.OfType<Linked>().Where(t => ((Linked)t).link == id).Select(t => new Linked(){predicate = t.predicate, link = r.id })).ToArray();
+
+            var links = db.Elements().Where(x => x.Elements().Attributes().Select(at => at.Name.ToString()).ToArray().Contains("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource"));
+            var el = links.Where(x => x.Elements().Last().Attributes().Select(at => at.Value.ToString()).ToArray().Contains(id)).Select(x => new Linked() { predicate = x.Elements().FirstOrDefault().Name.ToString(), link = x.Elements().FirstOrDefault().Attribute("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").Value }).ToArray();
+            return el;
         }
+
+        public static string[] SearchByNameAndType(string name, string type)
+        {
+            if (type != "All"){
+                return db.Elements().Where(el => el.Name.ToString() == type && el.Elements().First(r => r.Name.ToString() == "name").Value.ToString().ToUpper().Contains(name.ToUpper())).Select(el => el.Attribute("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about").Value.ToString()).ToArray();
+            }
+            return db.Elements().Where(el => el.Elements().FirstOrDefault(r => r.Name.ToString() == "name") != null && el.Elements().FirstOrDefault(r => r.Name.ToString() == "name").Value.ToString().ToUpper().Contains(name.ToUpper())).Select(el => el.Attribute("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about").Value.ToString()).ToArray();
+        }
+
+        public static string[] GetEntityTypes()
+        {
+            var links = db.Elements().Where(x => x.Elements().Attributes().Select(at => at.Name.ToString()).ToArray().Contains("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource"));
+            var types = db.Elements().Except(links).Select(el => el.Name.ToString()).Distinct().ToArray();
+            var result = new String[types.Length + 1];
+            result[0] = "All";
+            Array.Copy(types, 0, result, 1, types.Length);
+            return result;
+        }
+        /* public static Linked[] GetReferencePairs(string id)
+         {
+             return database.entities.SelectMany(r => r.pairs.OfType<Linked>().Where(t => ((Linked)t).link == id).Select(t => new Linked(){predicate = t.predicate, link = r.id })).ToArray();
+         }*/
         /*public static Tuple<string, object> GetFieldValue(string id, string field_name)
         {
             var record = GetEntity(id);
