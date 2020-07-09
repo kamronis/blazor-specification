@@ -1,78 +1,55 @@
 ﻿@page "/portrait/{entity_id}"
 
 @using Blazor_specification.Data
-
-<h3>Portrait @entity_type @entity_name</h3>
+@using System.Xml.Linq
+ 
+<h3>Portrait @OntNm(entity_type) @entity_id</h3>
 <div class="container-fluid">
     <h4>Fields</h4>
-    <MatTable Items="@pairs" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
+    <MatTable Items="@fields" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
         <MatTableRow>
-            <td>@context.predicate</td>
-            <td>
-                @if (context is Field)
-                {
-                    var value = ((Field)context).value;
-                    <span>@value</span>
-                }
-                else
-                {
-                    var new_id = ((Linked)context).link;
-                    <a href="/portrait/@new_id">@DataService.GetEntityName(new_id)</a>
-                }
+            <td>@OntNm(context.Attribute("prop").Value)</td>
+            <td>@context.Value
 
             </td>
         </MatTableRow>
     </MatTable>
 </div>
-@if (reference_pairs.Length != 0)
-{
+
 <div class="container-fluid">
-    <h4>References</h4>
-    <MatTable Items="@reference_pairs" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
+    <h4>Inverses</h4>
+    @foreach (IGrouping<string, XElement> link in inverses)
+    {
+     <h5>@OntNm(@link.Key)</h5>
+    <MatTable Items="@link" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
         <MatTableRow>
-            <td>@context.predicate</td>
-            <td>
-                @if (context is Field)
-                {
-                    var value = ((Field)context).value;
-                    <span>@value</span>
-                }
-                else
-                {
-                    var new_id = ((Linked)context).link;
-                    if (new_id == "cassetterootcollection")
-                    {
-                        <span>cassetterootcollection</span>
-                    }
-                    else
-                    {
-                        <a href="/portrait/@new_id">@DataService.GetEntityName(new_id)</a>
-                    }
-
-                }
-
-            </td>
+            <td>@OntNm(context.Attribute("prop").Value)</td>
+            <td>@context.Element("record").Attribute("id").Value</td>
         </MatTableRow>
     </MatTable>
+    }
 </div>
-}
+
 
     @code {
         [Parameter]
         public string entity_id { get; set; }
 
+        private XElement record;
+
         private string entity_type;
-        private string entity_name;
-        private Pair[] pairs;
-        private Pair[] reference_pairs;
+        private IEnumerable<XElement> fields;
+        private IEnumerable<IGrouping<string, XElement>> inverses;
+        Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
 
         protected override void OnParametersSet()
         {
             //DataService.InitDB();
-            pairs = DataService.GetPairs(entity_id);
-            entity_type = DataService.GetEntityType(entity_id);
-            entity_name = DataService.GetEntityName(entity_id);
-            reference_pairs = DataService.GetReferencePairs(entity_id);
+            record = OAData.OADB.GetItemByIdBasic(entity_id, true);
+            fields = record.Elements("field");
+            entity_type = record.Attribute("type").Value;
+            //entity_name = DataService.GetEntityName(entity_id);
+            inverses = record.Elements("inverse").GroupBy(inv => inv.Attribute("prop").Value, inv => inv);
         }
 
     }

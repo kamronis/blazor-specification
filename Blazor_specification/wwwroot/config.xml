@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config>
+  <!--<database connectionstring="trs:C:/Home/data/Databases/OADataService/" />-->
+  <database connectionstring="xml:"/>
+
+  <LoadCassette>C:\Users\Kamroni\Desktop\SypCassete</LoadCassette>
+
+
+
+</config>

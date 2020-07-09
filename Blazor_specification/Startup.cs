@@ -57,6 +57,10 @@ namespace Blazor_specification
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            OAData.OADB.Init(env.ContentRootPath + @"\wwwroot\" );
+            OAData.Ontology.Init(env.ContentRootPath + @"\wwwroot\ontology_iis-v12-doc_ruen.xml");
+
         }
     }
 }

@@ -1,0 +1,31 @@
+﻿@using System.Xml.Linq; 
+
+@page "/test_page"
+
+<h3>Test_page</h3>
+<pre>@result</pre>
+<button @onclick="@ShowById">push me</button>
+<pre>@result_id</pre>
+<pre>@portrait</pre>
+
+@code {
+
+    private string result;
+    private string result_id;
+    private string portrait;
+
+    protected override void OnParametersSet()
+    {
+        var query = new XElement("result", OAData.OADB.SearchByName("Марчук") );
+
+        result = query.ToString();
+    }
+
+    private void ShowById()
+    {
+        var query = OAData.OADB.GetItemByIdBasic("syp2001-p-marchuk_a", true);
+        var query_p = OAData.OADB.GetBasicPortrait("syp2001-p-marchuk_a");
+        result_id = query.ToString();
+        portrait = query_p.ToString();
+    }
+}

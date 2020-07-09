@@ -8,5 +8,9 @@
     <PackageReference Include="MatBlazor" Version="2.6.0" />
 	  <Watch Include="..\Blazor_specification\**\*.razor" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\PolarArchiving\src\OAData\OAData.csproj" />
+  </ItemGroup>
 
 </Project>
