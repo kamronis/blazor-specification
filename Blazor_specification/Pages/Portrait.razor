@@ -2,54 +2,70 @@
 
 @using Blazor_specification.Data
 @using System.Xml.Linq
- 
-<h3>Portrait @OntNm(entity_type) @entity_id</h3>
+
+<h3>Portrait @entity_type @entity_id</h3>
+@if (image_uri != "")
+{
+    var src = "/Docs/GetPhoto?u=" + image_uri + "&s=medium";
+    <img src="@src" />
+}
 <div class="container-fluid">
     <h4>Fields</h4>
     <MatTable Items="@fields" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
         <MatTableRow>
-            <td>@OntNm(context.Attribute("prop").Value)</td>
-            <td>@context.Value
+            <td>@context.Attribute("prop").Value</td>
+            <td>
+                @context.Value
 
-            </td>
-        </MatTableRow>
-    </MatTable>
+        </td>
+    </MatTableRow>
+</MatTable>
 </div>
 
 <div class="container-fluid">
     <h4>Inverses</h4>
     @foreach (IGrouping<string, XElement> link in inverses)
     {
-     <h5>@OntNm(@link.Key)</h5>
-    <MatTable Items="@link" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
-        <MatTableRow>
-            <td>@OntNm(context.Attribute("prop").Value)</td>
-            <td>@context.Element("record").Attribute("id").Value</td>
-        </MatTableRow>
-    </MatTable>
+        <h5>@link.Key</h5>
+        <MatTable Items="@link" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
+            <MatTableRow>
+                @{
+                    string inv_id = context.Elements("direct").Where(el => el.Element("record").Attribute("id").Value != entity_id).FirstOrDefault().Element("record").Attribute("id").Value;
+                    string inv_link = "/portrait/" + inv_id;
+                }
+                <td>@context.Elements("direct").Where(el => el.Element("record").Attribute("id").Value != entity_id).FirstOrDefault().Attribute("prop").Value</td>
+                <td><NavLink href="@inv_link">source</NavLink></td>
+                <td><Plain_portriat entity_id="@inv_id" /></td>
+            </MatTableRow>
+        </MatTable>
     }
 </div>
 
+@code {
+    [Parameter]
+    public string entity_id { get; set; }
 
-    @code {
-        [Parameter]
-        public string entity_id { get; set; }
+    private XElement record;
 
-        private XElement record;
+    private string entity_type;
+    private string image_uri = "";
+    private IEnumerable<XElement> fields;
+    private IEnumerable<IGrouping<string, XElement>> inverses;
+    Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
 
-        private string entity_type;
-        private IEnumerable<XElement> fields;
-        private IEnumerable<IGrouping<string, XElement>> inverses;
-        Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
-
-        protected override void OnParametersSet()
+    protected override void OnParametersSet()
+    {
+        //DataService.InitDB();
+        record = OAData.OADB.GetItemByIdBasic(entity_id, true);
+        fields = record.Elements("field");
+        entity_type = record.Attribute("type").Value;
+        //entity_name = DataService.GetEntityName(entity_id);
+        inverses = record.Elements("inverse").GroupBy(inv => inv.Attribute("prop").Value, inv => OAData.OADB.GetItemByIdBasic(inv.Element("record").Attribute("id").Value, false));
+        if (entity_type == "http://fogid.net/o/photo-doc")
         {
-            //DataService.InitDB();
-            record = OAData.OADB.GetItemByIdBasic(entity_id, true);
-            fields = record.Elements("field");
-            entity_type = record.Attribute("type").Value;
-            //entity_name = DataService.GetEntityName(entity_id);
-            inverses = record.Elements("inverse").GroupBy(inv => inv.Attribute("prop").Value, inv => inv);
-        }
+            image_uri = fields.FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/uri").Value;
 
+        }
     }
+
+}

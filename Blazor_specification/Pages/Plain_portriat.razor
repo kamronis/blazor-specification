@@ -1,0 +1,50 @@
+﻿@page "/plain_portrait/{entity_id}"
+
+@using Blazor_specification.Data
+@using System.Xml.Linq
+
+<h3>Portrait @entity_type @entity_id</h3>
+@if (image_uri != "")
+{
+    var src = "/Docs/GetPhoto?u=" + image_uri + "&s=small";
+    <img src="@src" />
+}
+
+<div class="container-fluid">
+    <h4>Fields</h4>
+    @foreach (XElement field in fields)
+    {
+        <p>@field.Attribute("prop").Value: @field.Value</p>
+    }
+</div>
+
+
+
+@code {
+    [Parameter]
+    public string entity_id { get; set; }
+
+    private XElement record;
+
+    private string entity_type;
+    private string image_uri = "";
+    private IEnumerable<XElement> fields;
+    private IEnumerable<IGrouping<string, XElement>> inverses;
+    Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
+
+    protected override void OnParametersSet()
+    {
+        //DataService.InitDB();
+        record = OAData.OADB.GetItemByIdBasic(entity_id, true);
+        fields = record.Elements("field");
+        entity_type = record.Attribute("type").Value;
+        //entity_name = DataService.GetEntityName(entity_id);
+        inverses = record.Elements("inverse").GroupBy(inv => inv.Attribute("prop").Value, inv => OAData.OADB.GetItemByIdBasic(inv.Element("record").Attribute("id").Value, false));
+        if (entity_type == "http://fogid.net/o/photo-doc")
+        {
+            image_uri = fields.FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/uri").Value;
+
+        }
+    }
+
+}

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor_specification", "Bla
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XML testing", "XML testing\XML testing.csproj", "{EA772D7C-616B-444A-A009-EC5BC80FF893}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAData", "..\PolarArchiving\src\OAData\OAData.csproj", "{9474DF5A-7B9F-420E-8002-1E5BE30B0B8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAData", "OAData\OAData.csproj", "{9474DF5A-7B9F-420E-8002-1E5BE30B0B8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

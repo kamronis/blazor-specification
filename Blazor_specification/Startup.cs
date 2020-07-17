@@ -27,6 +27,7 @@ namespace Blazor_specification
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<DataService>();
@@ -47,6 +48,8 @@ namespace Blazor_specification
                 app.UseHsts();
             }
 
+            
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -56,6 +59,9 @@ namespace Blazor_specification
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
+                endpoints.MapControllerRoute(
+                   name: "default",
+                   pattern: "{controller=Home}/{action=Index}/{id?}");
             });
 
             OAData.OADB.Init(env.ContentRootPath + @"\wwwroot\" );
