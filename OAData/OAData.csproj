@@ -9,6 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\PolarDB\src\TripleStore\Polar.TripleStore.csproj" />
+    <ProjectReference Include="..\..\PolarDB\src\TripleStore\Polar.TripleStore.csproj" />
   </ItemGroup>
 </Project>

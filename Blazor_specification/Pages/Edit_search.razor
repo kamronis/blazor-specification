@@ -1,0 +1,110 @@
+﻿@using Blazor_specification.Data
+@using System.Xml.Linq
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Name:</h4>
+            <MatStringField @bind-Value="@selected_name"></MatStringField>
+        </div>
+        <div class="col-md-6">
+            <h4>Type:</h4>
+            <MatSelectItem @bind-Value="@selected_type" Items="@entity_types"></MatSelectItem>
+        </div>
+    </div>
+</div>
+<MatButton type="submit" @onclick="SearchByQuery">Search</MatButton>
+
+@if (query_result != null)
+{
+    <div class="container-fluid">
+        <MatTable Items="@query_result" PageSize="10" class="mat-elevation-z5" style="width:auto;" UseSortHeaderRow="true">
+
+            <MatTableHeader>
+                <th>Type</th>
+                <th>Name</th>
+            </MatTableHeader>
+
+            <MatTableRow>
+                @{
+                    
+                    <td>@context.Second.Attribute("type").Value</td>
+                    <td>@context.Second.Elements("field").FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/name").Value</td>
+                    <td><MatCheckbox @bind-Value="@context.First"></MatCheckbox></td>
+                }
+            </MatTableRow>
+
+        </MatTable>
+    </div>
+
+}
+
+
+@code {
+    [Parameter]
+    public List<XElement> inverses { get; set; }
+
+
+    private T_Pair<bool, XElement>[] query_result;
+    private string selected_name = "";
+    private string[] entity_types = { "All", "http://fogid.net/o/person", "http://fogid.net/o/document" };
+    private string selected_type = "All";
+    private XElement[] query;
+    //private string[] inverses_ids;
+
+    private void SearchByQuery()
+    {
+
+        if (selected_type == "All")
+            query = OAData.OADB.SearchByName(selected_name).ToArray();
+        else
+            query = OAData.OADB.SearchByName(selected_name).Where(x => x.Attribute("type").Value == selected_type).ToArray();
+
+        query_result = new T_Pair<bool, XElement>[query.Length];
+        for (int i=0; i< query.Length; i++)
+        {
+            query_result[i] = new T_Pair<bool, XElement>(false, query[i]);
+        }
+    }
+
+    public void ClearTable()
+    {
+        query_result = null;
+    }
+    /*void SortData(MatSortChangedEvent sort)
+    {
+        if (!(sort == null || sort.Direction == MatSortDirection.None || string.IsNullOrEmpty(sort.SortId)))
+        {
+            Comparison<String> comparison = null;
+            switch (sort.SortId)
+            {
+                case "name":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityType(s1), DataService.GetEntityType(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case "type":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityName(s1), DataService.GetEntityName(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+            }
+            if (comparison != null)
+            {
+                if (sort.Direction == MatSortDirection.Desc)
+                {
+                    Array.Sort(query_result, (s1, s2) => -1 * comparison(s1, s2));
+                }
+                else
+                {
+                    Array.Sort(query_result, comparison);
+                }
+            }
+        }
+    }*/
+
+    protected override void OnParametersSet()
+    {
+        // inverses_ids = inverses.Select(x => x.Elements("direct").Element("record").Attribute("id").Value).FirstOrDefault();
+    }
+
+    protected override void OnAfterRender(bool first_render)
+    {
+    }
+}

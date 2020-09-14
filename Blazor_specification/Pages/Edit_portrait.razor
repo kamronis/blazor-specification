@@ -1,0 +1,125 @@
+﻿@page "/e_portrait/{entity_id}"
+
+@using Blazor_specification.Data
+@using System.Xml.Linq
+
+<h3>Portrait @FormatService.OntNm(@entity_type) @entity_id</h3>
+@if (image_uri != "")
+{
+    var src = "/Docs/GetPhoto?u=" + image_uri + "&s=medium";
+    <img src="@src" />
+}
+<div class="container-fluid">
+    <h4>Fields</h4>
+    <MatTable Items="@fields" PageSize="500" ShowPaging="false" class="mat-elevation-z5" HeaderRowClass="d-none">
+        <MatTableRow>
+            <td>@FormatService.OntNm(context.Attribute("prop").Value)</td>
+            <td>
+                <MatTextField @bind-Value="context.Value" FullWidth="true"></MatTextField>
+
+            </td>
+        </MatTableRow>
+    </MatTable>
+</div>
+<div class="container-fluid">
+    <h4>Inverses</h4>
+    <MatAccordion>
+        @foreach (IGrouping<string, XElement> link in grouped_inverses)
+        {
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>@FormatService.OntNm(link.Key)</MatExpansionPanelHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <MatButton OnClick="@OpenDialog" Raised="true" Style="background-color:greenyellow;">Add Link</MatButton>
+                    <MatTextField OnInput="@(x => Search(link.Key, search_string))" @bind-Value="search_string" Label="Search" FullWidth="true"></MatTextField>
+                    <MatTable Items="@link" PageSize="500" ShowPaging="false" class="mat-elevation-z5" style="width:auto;" HeaderRowClass="d-none">
+                        <MatTableRow>
+                            @{
+                                string inv_id = context.Elements("direct").Where(el => el.Element("record").Attribute("id").Value != entity_id).FirstOrDefault().Element("record").Attribute("id").Value;
+                            }
+                            <td><Edit_s_portrait entity_id="@inv_id" /></td>
+                            <td><MatButton OnClick="@(x => DeleteLink(inv_id))" Raised="true" Style="background-color:red;">Delete</MatButton></td>
+                        </MatTableRow>
+                    </MatTable>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+        }
+    </MatAccordion>
+    <br />
+    <br />
+    <MatButton Raised="true">Save</MatButton>
+
+    <MatDialog  @bind-IsOpen="@dialog_is_open">
+        <MatDialogTitle>Add link</MatDialogTitle>
+        <MatDialogContent>
+            <Edit_search inverses="@real_inverses"></Edit_search>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@(e => { dialog_is_open = false;  })">Cancel</MatButton>
+            <MatButton OnClick="@SaveLink">Save</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+@code {
+    [Parameter]
+    public string entity_id { get; set; }
+
+
+    private XElement record;
+
+    private string entity_type;
+    private string image_uri = "";
+
+    private IEnumerable<XElement> fields;
+    private List<XElement> show_inverses;
+    private List<XElement> real_inverses;
+    private List<IGrouping<string, XElement>> grouped_inverses;
+
+    private string search_string;
+    private bool dialog_is_open = false;
+
+    private void DeleteLink(string id)
+    {
+        var element = real_inverses.Where(x => x.Elements("direct").Where(el => el.Element("record").Attribute("id").Value == id).FirstOrDefault() != null).FirstOrDefault();
+        real_inverses.Remove(element);
+        show_inverses = real_inverses;
+        grouped_inverses = show_inverses.GroupBy(inv => inv.Attribute("type").Value, inv => inv).ToList();
+
+    }
+
+    private void Search(string key, string search_string)
+    {
+        if (search_string != null && search_string.Length >= 3)
+        {
+
+        }
+    }
+    private void OpenDialog() {
+        dialog_is_open = true;
+    }
+
+    private void SaveLink()
+    {
+        dialog_is_open = false;
+    }
+    protected override void OnParametersSet()
+    {
+        //DataService.InitDB();
+        image_uri = "";
+        record = OAData.OADB.GetItemByIdBasic(entity_id, true);
+        fields = record.Elements("field");
+        entity_type = record.Attribute("type").Value;
+        //entity_name = DataService.GetEntityName(entity_id);
+        real_inverses = record.Elements("inverse").Select(inv => OAData.OADB.GetItemByIdBasic(inv.Element("record").Attribute("id").Value, false)).ToList();
+        show_inverses = real_inverses;
+        grouped_inverses = show_inverses.GroupBy(inv => inv.Attribute("type").Value, inv => inv).ToList();
+        if (entity_type == "http://fogid.net/o/photo-doc")
+        {
+            image_uri = fields.FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/uri").Value;
+
+        }
+    }
+
+}

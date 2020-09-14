@@ -181,3 +181,7 @@ app {
         display: block;
     }
 }
+
+.mdc-dialog__surface {
+    max-width: 1200px!important;
+}

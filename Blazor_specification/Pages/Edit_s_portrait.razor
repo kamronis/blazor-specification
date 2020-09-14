@@ -1,23 +1,19 @@
-﻿@page "/plain_portrait/{entity_id}"
-
-@using Blazor_specification.Data
+﻿@using Blazor_specification.Data
 @using System.Xml.Linq
 
-<h3>Type: @entity_type </h3>
-<h3>Id: @entity_id</h3>
+<h3 class="text-nowrap">Type: @FormatService.OntNm(entity_type) </h3>
+<h3 class="text-nowrap">Name : @entity_name</h3>
+@{
+    string link = "/portrait/" + entity_id;
+}
+<h3 class="text-nowrap">Id: <NavLink href="@link" target="_blank">@entity_id</NavLink></h3>
+
+
 @if (image_uri != "")
 {
     var src = "/Docs/GetPhoto?u=" + image_uri + "&s=small";
     <img src="@src" />
 }
-
-<div class="container-fluid">
-    <h4>Fields</h4>
-    @foreach (XElement field in fields)
-    {
-        <p><b>@field.Attribute("prop").Value</b>: @field.Value</p>
-    }
-</div>
 
 
 
@@ -28,9 +24,9 @@
     private XElement record;
 
     private string entity_type;
+    private string entity_name;
     private string image_uri = "";
     private IEnumerable<XElement> fields;
-    Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
 
     protected override void OnParametersSet()
     {
@@ -40,7 +36,13 @@
 
         fields = record.Elements("field");
         entity_type = record.Attribute("type").Value;
-        //entity_name = DataService.GetEntityName(entity_id);
+        var has_name = fields.FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/name");
+        if (!(has_name is null))
+        {
+            entity_name = has_name.Value;
+        }
+
+
         if (entity_type == "http://fogid.net/o/photo-doc")
         {
             image_uri = fields.FirstOrDefault(f => f.Attribute("prop").Value == "http://fogid.net/o/uri").Value;

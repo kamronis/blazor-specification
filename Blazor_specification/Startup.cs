@@ -66,6 +66,7 @@ namespace Blazor_specification
 
             OAData.OADB.Init(env.ContentRootPath + @"\wwwroot\" );
             OAData.Ontology.Init(env.ContentRootPath + @"\wwwroot\ontology_iis-v12-doc_ruen.xml");
+            FormatService.Load(env.ContentRootPath + @"\wwwroot\ApplicationProfile.xml");
 
         }
     }

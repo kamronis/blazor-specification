@@ -51,11 +51,11 @@
     private string image_uri = "";
     private IEnumerable<XElement> fields;
     private IEnumerable<IGrouping<string, XElement>> inverses;
-    Func<string, string> OntNm = nm => OAData.Ontology.GetOntName(nm);
 
     protected override void OnParametersSet()
     {
         //DataService.InitDB();
+        image_uri = "";
         record = OAData.OADB.GetItemByIdBasic(entity_id, true);
         fields = record.Elements("field");
         entity_type = record.Attribute("type").Value;

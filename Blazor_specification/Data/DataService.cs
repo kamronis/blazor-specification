@@ -9,6 +9,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Blazor_specification.Data
 {
+    public class FormatService
+    {
+        public static XElement application_profile;
+
+        public static void Load(string path)
+        {
+            application_profile = XElement.Load(path);
+        }
+
+        private static bool ontology_names = true;
+
+        public static Func<string, string> OntNm = nm => (ontology_names ? OAData.Ontology.GetOntName(nm) : nm);
+    }
     public class DataService
     {
         public static SpecificationTable[] table_specifications = new SpecificationTable[]

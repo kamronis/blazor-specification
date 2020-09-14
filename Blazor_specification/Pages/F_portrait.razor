@@ -1,0 +1,22 @@
+﻿@page "/f_portrait/{entity_id}"
+
+@using Blazor_specification.Data
+@using System.Xml.Linq
+ 
+<h3>F_portrait</h3>
+<pre>@query</pre>
+
+@code {
+    [Parameter]
+    public string entity_id { get; set; }
+
+    XElement query;
+
+
+    protected override void OnParametersSet()
+    {
+        XElement format = new XElement("record", new XElement("field", new XAttribute("prop", "http://fogid.net/o/name")), new XElement("field", new XAttribute("prop", "http://fogid.net/o/uri")));
+
+        query = OAData.OADB.GetItemById(entity_id, format);
+    }
+}

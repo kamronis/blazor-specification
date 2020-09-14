@@ -1,0 +1,84 @@
+﻿@using Blazor_specification.Data
+@using System.Xml.Linq
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Name:</h4>
+            <MatAutocompleteList  @bind-Value="@search_string" OnTextChanged="SearchByQuery" Items="@query_result" TItem="string" Label="Pick one"></MatAutocompleteList>
+        </div>
+        <div class="col-md-6">
+            <h4>Type:</h4>
+            <MatSelectItem @bind-Value="@selected_type" Items="@entity_types" Label="Select items"></MatSelectItem>
+        </div>
+    </div>
+</div>
+<MatButton @onclick="SearchByQuery">Search</MatButton>
+<div class="container-fluid">
+    <MatTable Items="@query_result" PageSize="10" class="mat-elevation-z5" style="width:auto;" UseSortHeaderRow="true">
+
+
+        <MatTableHeader>
+            <th>Type</th>
+            <th>Name</th>
+        </MatTableHeader>
+
+
+        <MatTableRow>
+            <pre>@context.ToString()</pre>
+        </MatTableRow>
+
+    </MatTable>
+</div>
+
+@code {
+    private string[] entity_types = { "http://fogid.net/o/person", "http://fogid.net/o/document"};
+    private string selected_type;
+    private string[] query_result = { "введите больше букв" };
+
+    private string search_string;
+
+    void SearchByQuery()
+    {
+      if (search_string != null && search_string.Length > 3)
+            query_result = OAData.OADB.SearchByName(search_string).Elements("field").Select(x => x.Value).ToArray();
+    }
+
+    void ClearTable()
+    {
+        query_result = null;
+    }
+    /*void SortData(MatSortChangedEvent sort)
+    {
+        if (!(sort == null || sort.Direction == MatSortDirection.None || string.IsNullOrEmpty(sort.SortId)))
+        {
+            Comparison<String> comparison = null;
+            switch (sort.SortId)
+            {
+                case "name":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityType(s1), DataService.GetEntityType(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case "type":
+                    comparison = (s1, s2) => string.Compare(DataService.GetEntityName(s1), DataService.GetEntityName(s2), StringComparison.InvariantCultureIgnoreCase);
+                    break;
+            }
+            if (comparison != null)
+            {
+                if (sort.Direction == MatSortDirection.Desc)
+                {
+                    Array.Sort(query_result, (s1, s2) => -1 * comparison(s1, s2));
+                }
+                else
+                {
+                    Array.Sort(query_result, comparison);
+                }
+            }
+        }
+    }*/
+
+    protected override void OnParametersSet()
+    {
+
+    }
+
+}

@@ -10,18 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Pages\Plain_portriat.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Watch Remove="Pages\Plain_portriat.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Pages\Plain_portriat.razor" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\..\PolarArchiving\src\OAData\OAData.csproj" />
   </ItemGroup>
 
